@@ -46,13 +46,36 @@ def find_arduino():
     print("No compatible Arduino boards found.")
     sys.exit(1)
 
-def upload_sketch(sketch_path, port, fqbn):
-    """Compile and upload the Arduino sketch to the board."""
+def upload_sketch(sketch_path, port, fqbn, config):
+    """
+    Compile and upload the Arduino sketch to the board.
+    """
+
+    # Construct the build properties string
+    build_props = "build.extra_flags="
+
+    # Add each config parameter as a macro definition
+    for key, value in config.items():
+        # Convert the key to uppercase and replace any special characters to match macro naming conventions
+        macro_name = key.upper()
+        macro_name = macro_name.replace(' ', '_')  # Replace spaces with underscores if any
+
+        # Append to the build properties string
+        build_props += f"-D{macro_name}={value} "
+
+    # Trim any trailing whitespace
+    build_props = build_props.strip()
+    print(build_props)
+
+    # Compile the sketch with build properties
     compile_cmd = [
-        'arduino-cli', 'compile', '--fqbn', fqbn, sketch_path
+         'arduino-cli', 'compile',
+        '--fqbn', fqbn,
+        '--build-properties', build_props,
+        sketch_path
     ]
     print("Compiling the sketch...")
-    result = subprocess.run(compile_cmd, capture_output=True, text=True)
+    result = subprocess.run(compile_cmd, capture_output=True, text=True,check=True)
 
     if result.returncode != 0:
         print("Compilation failed:")
@@ -62,7 +85,8 @@ def upload_sketch(sketch_path, port, fqbn):
         print("Compilation succeeded.")
 
     upload_cmd = [
-        'arduino-cli', 'upload', '-p', port, '--fqbn', fqbn, sketch_path
+        'arduino-cli', 'upload', '-p', port, '--fqbn', fqbn,
+        sketch_path
     ]
     print("Uploading the sketch to the board...")
     result = subprocess.run(upload_cmd, capture_output=True, text=True)

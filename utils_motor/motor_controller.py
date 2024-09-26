@@ -7,24 +7,26 @@ import time
 from utils_motor.utils import find_arduino, check_arduino_cli, upload_sketch
 
 class MotorController:
-    def __init__(self, steps_per_revolution_base=200, micro_stepping=16,
-                 motor_max_speed=200, set_motor_speed=50,
-                 motor_acceleration=200, revolutions=1, sketch_path=None):
+    def __init__(self,config, sketch_path):
         """
         Initialize the MotorController with given parameters.
         """
-        self.steps_per_revolution_base = steps_per_revolution_base
-        self.micro_stepping = micro_stepping
-        self.motor_max_speed = motor_max_speed
-        self.set_motor_speed = set_motor_speed
-        self.motor_acceleration = motor_acceleration
-        self.revolutions = revolutions
+        try:
+            self.steps_per_revolution_base = config["steps_per_revolution_base"]
+            self.micro_stepping = config["micro_stepping"]
+            self.motor_max_speed = config["motor_max_speed"]
+            self.set_motor_speed = config["set_motor_speed"]
+            self.motor_acceleration = config["motor_acceleration"]
+            self.revolutions = config["revolutions"]
+        except KeyError as e:
+            pass
         self.sketch_path = sketch_path
 
         self.ser = None  # Serial connection
         self.port = None  # Arduino port
         self.fqbn = None  # Arduino Fully Qualified Board Name
 
+        self.config = config
         self._validate_parameters()
 
     def _validate_parameters(self):
@@ -44,7 +46,7 @@ class MotorController:
         check_arduino_cli()
         self.port, self.fqbn = find_arduino()
         print(f"Found Arduino on port {self.port} with FQBN {self.fqbn}")
-        upload_sketch(self.sketch_path, self.port, self.fqbn)
+        upload_sketch(self.sketch_path, self.port, self.fqbn, self.config)
 
         time.sleep(2)  # Wait for the Arduino to reset after uploading
 
@@ -52,22 +54,6 @@ class MotorController:
         self.ser = serial.Serial(self.port, 9600, timeout=1)
         print("Initializing Arduino serial connection")
         time.sleep(1)  # Wait for the connection to initialize
-
-    def configure(self):
-        """
-        Send configuration commands to the Arduino.
-        """
-        print("Loading configuration setup")
-        commands = [
-            f'r{self.steps_per_revolution_base}'
-            f'm{self.micro_stepping}',
-            f'M{self.motor_max_speed * self.micro_stepping}',
-            f'S{self.set_motor_speed * self.micro_stepping}',
-            f'A{self.motor_acceleration * self.micro_stepping}'
-        ]
-        for command in commands:
-            self._send_command(command)
-            time.sleep(0.5)
 
     def _send_command(self, command, value=None):
         """
@@ -78,6 +64,7 @@ class MotorController:
         else:
             full_command = f"{command}\n"
         self.ser.write(full_command.encode())
+
     def rotate_forwards(self, steps=None):
         """
         Rotate the motor by a specified number of steps.

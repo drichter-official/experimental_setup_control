@@ -6,6 +6,9 @@ from utils_motor.motor_controller import MotorController
 #from utils_camera.camera_controller import CameraController
 
 def main():
+    import argparse
+    import configparser
+
     parser = argparse.ArgumentParser(description='Motor Controller Script')
     parser.add_argument('--steps_per_revolution_base', type=int, default=200,
                         help='Number of steps for one rotation.')
@@ -28,44 +31,36 @@ def main():
         config.read(args.config_path)
         config_defaults = config['DEFAULT']
 
-        def get_arg(config_section, arg_name, current_value, arg_type):
-            if arg_name in config_section:
-                return arg_type(config_section[arg_name])
+        # Update args with values from the config file
+        for key in config_defaults:
+            if hasattr(args, key):
+                # Convert the config value to the correct type
+                arg_type = type(getattr(args, key))
+                setattr(args, key, arg_type(config_defaults[key]))
             else:
-                return current_value
+                print(f"Warning: Unknown config parameter '{key}' in config file.")
 
-        args.steps_per_revolution_base = get_arg(config_defaults, 'steps_per_revolution_base',
-                                                 args.steps_per_revolution_base, int)
-        args.micro_stepping = get_arg(config_defaults, 'micro_stepping', args.micro_stepping, int)
-        args.motor_max_speed = get_arg(config_defaults, 'motor_max_speed', args.motor_max_speed, int)
-        args.set_motor_speed = get_arg(config_defaults, 'set_motor_speed', args.set_motor_speed, int)
-        args.motor_acceleration = get_arg(config_defaults, 'motor_acceleration', args.motor_acceleration, int)
-        args.revolutions = get_arg(config_defaults, 'revolutions', args.revolutions, int)
+    # Now you can use vars(args) as your config dict
+    config = vars(args)
 
     # Create an instance of MotorController with the updated arguments
     motor_controller = MotorController(
-        steps_per_revolution_base=args.steps_per_revolution_base,
-        micro_stepping=args.micro_stepping,
-        motor_max_speed=args.motor_max_speed,
-        set_motor_speed=args.set_motor_speed,
-        motor_acceleration=args.motor_acceleration,
-        revolutions=args.revolutions,
-        sketch_path=args.sketch_path
+        config=config,
+        sketch_path=args.sketch_path,
     )
 
     try:
         motor_controller.connect()
-        motor_controller.configure()
 
         input("Press Enter to start the motor rotation...")
 
-        motor_controller.rotate_forwards()
+        #motor_controller.rotate_forwards()
 
         # Adjust the sleep time as needed for the motor to complete movement
-        time.sleep(2)
-        #motor_controller.rotate_forwards()
-        time.sleep(2)
-        #motor_controller.rotate_backwards()
+        # time.sleep(2)
+        motor_controller.rotate_forwards()
+        # time.sleep(2)
+        # motor_controller.rotate_backwards()
 
     finally:
         motor_controller.close()
