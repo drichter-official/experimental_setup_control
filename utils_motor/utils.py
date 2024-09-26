@@ -46,10 +46,24 @@ def find_arduino():
     print("No compatible Arduino boards found.")
     sys.exit(1)
 
-def upload_sketch(sketch_path, port, fqbn):
-    """Compile and upload the Arduino sketch to the board."""
+def upload_sketch(sketch_path, port, fqbn, config):
+    """
+    Compile and upload the Arduino sketch to the board.
+    """
+
+    build_props = [
+        f"STEPS_PER_REVOLUTION_BASE={config['steps_per_revolution_base']}",
+        f"MICROSTEPPING={config['micro_stepping']}",
+        f"MAX_SPEED={config['motor_max_speed']}",
+        f"ACCELERATION={config['motor_acceleration']}"
+    ]
+    build_props_str = ",".join(build_props)
+
     compile_cmd = [
-        'arduino-cli', 'compile', '--fqbn', fqbn, sketch_path
+         'arduino-cli', 'compile',
+        '--fqbn', fqbn,
+        '--build-properties', build_props_str,
+        sketch_path
     ]
     print("Compiling the sketch...")
     result = subprocess.run(compile_cmd, capture_output=True, text=True)
@@ -62,7 +76,8 @@ def upload_sketch(sketch_path, port, fqbn):
         print("Compilation succeeded.")
 
     upload_cmd = [
-        'arduino-cli', 'upload', '-p', port, '--fqbn', fqbn, sketch_path
+        'arduino-cli', 'upload', '-p', port, '--fqbn', fqbn,
+        sketch_path
     ]
     print("Uploading the sketch to the board...")
     result = subprocess.run(upload_cmd, capture_output=True, text=True)

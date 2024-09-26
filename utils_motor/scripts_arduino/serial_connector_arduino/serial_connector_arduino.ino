@@ -34,22 +34,9 @@ int microstepping = MICROSTEPPING;
 int maxSpeed = MAX_SPEED;
 int acceleration = ACCELERATION;
 
-bool motorRun = false;
 // Create a new instance of the AccelStepper class:
 AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 
-void setup() {
-  Serial.begin(9600);
-  // Initialize serial communication:
-  // Set the maximum speed in steps per second:
-  pinMode(msc1, OUTPUT);
-  pinMode(msc2, OUTPUT);
-  pinMode(msc3, OUTPUT);
-
-  digitalWrite(msc1, HIGH);
-  digitalWrite(msc2, HIGH);
-  digitalWrite(msc3, HIGH);
-}
 void setMicrostepping(int microsteps) {
   if (microsteps == 1) {
     digitalWrite(msc1, LOW);
@@ -73,6 +60,26 @@ void setMicrostepping(int microsteps) {
     digitalWrite(msc3, HIGH);
   }
 }
+
+void setup() {
+  Serial.begin(9600);
+  // Initialize microstepping pins:
+  pinMode(msc1, OUTPUT);
+  pinMode(msc2, OUTPUT);
+  pinMode(msc3, OUTPUT);
+
+  // Set microstepping:
+  setMicrostepping(microstepping);
+
+  // Set the maximum speed and acceleration in steps per second:
+  if (acceleration != 0) {
+    stepper.setAcceleration(acceleration * microstepping);
+  }
+  if (maxSpeed != 0) {
+    stepper.setMaxSpeed(maxSpeed * microstepping);
+  }
+}
+
 void loop() {
   if (Serial.available() > 0) {
     String inputString = Serial.readStringUntil('\n');
@@ -80,39 +87,13 @@ void loop() {
     String valueString = inputString.substring(1);
     int value = valueString.toInt();
 
-
     // Motor Control Commands
-    if (command == 'F')
-    {
+    if (command == 'F') {
       stepper.moveTo(stepper.currentPosition() + value);
       stepper.runToPosition();
-    }
-    else if (command == 'B')
-    {
+    } else if (command == 'B') {
       stepper.moveTo(stepper.currentPosition() - value);
       stepper.runToPosition();
-    }
-
-    // Configuration Commands
-    else if (command == 's')
-    {
-      stepsPerRevolution = value;
-    }
-    else if (command == 'M')
-    {
-      stepper.setMaxSpeed(value);
-    }
-    else if (command == 'S')
-    {
-      stepper.setSpeed(value);
-    }
-    else if (command == 'A')
-    {
-      stepper.setAcceleration(value);
-    }
-    else if (command == 'm')
-    {
-      setMicrostepping(value);
     }
   }
 }
