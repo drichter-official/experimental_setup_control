@@ -4,8 +4,8 @@ This project provides a Python-based controller for a stepper motor and a Thorla
 Table of Contents
 
     Features
-    Hardware Requirements
-    Software Requirements
+        Hardware Requirements
+        Software Requirements
     Installation
     Configuration
     Usage
@@ -15,7 +15,7 @@ Table of Contents
     License
     Acknowledgements
 
-Features
+## Features
 ```
 Motor Control:
     Control a stepper motor via an Arduino.
@@ -29,7 +29,7 @@ Camera Control:
     Capture and save images from the camera.
     Threaded image acquisition to ensure smooth GUI performance.
 ```
-Hardware Requirements
+### Hardware Requirements
 ```
 Arduino Uno (or compatible board)
 Stepper Motor
@@ -37,7 +37,7 @@ Stepper Motor Driver (e.g., A4988, DRV8825)
 Thorlabs Camera (compatible with Thorlabs TSI SDK)
 Connecting Cables and Power Supply
 ```
-Software Requirements
+### Software Requirements
 ```
 Python 3.x
 Arduino CLI (must be installed and added to system PATH)
