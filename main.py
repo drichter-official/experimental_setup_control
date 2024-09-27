@@ -6,9 +6,6 @@ from utils_motor.motor_controller import MotorController
 #from utils_camera.camera_controller import CameraController
 
 def main():
-    import argparse
-    import configparser
-
     parser = argparse.ArgumentParser(description='Motor Controller Script')
     parser.add_argument('--steps_per_revolution_base', type=int, default=200,
                         help='Number of steps for one rotation.')
@@ -58,9 +55,9 @@ def main():
 
         # Adjust the sleep time as needed for the motor to complete movement
         # time.sleep(2)
-        motor_controller.rotate_forwards()
-        # time.sleep(2)
-        # motor_controller.rotate_backwards()
+        motor_controller.rotate_forwards(16000)
+        #time.sleep(25)
+        #motor_controller.rotate_backwards()
 
     finally:
         motor_controller.close()
