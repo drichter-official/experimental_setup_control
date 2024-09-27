@@ -1,0 +1,8 @@
+future==1.0.0
+iso8601==2.1.0
+numpy==2.1.1
+pillow==10.4.0
+pyserial==3.5
+PyYAML==6.0.2
+thorlabs-tsi-sdk @ file:///home/daniel/projects/experimental_setup_controller/thorlabs_tsi_sdk-0.0.7
+tqdm==4.66.5
