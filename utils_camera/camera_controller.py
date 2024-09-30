@@ -89,6 +89,7 @@ class ImageAcquisitionThread(threading.Thread):
                 break
         print("Image acquisition has stopped")
 
+
 class CameraController:
     """Controller class for camera operations."""
 
@@ -133,12 +134,25 @@ class CameraController:
     def stop_live_view(self):
         """Stop the live view and clean up resources."""
         print("Stopping live view...")
-        self._image_acquisition_thread.stop()
-        self._image_acquisition_thread.join()
-        self._camera.disarm()
-        self._camera.close()
-        self._sdk.dispose()
-        self._root.destroy()
+        try:
+            self._image_acquisition_thread.stop()
+            self._image_acquisition_thread.join()
+
+            self._camera.disarm()
+            print("Camera disarmed successfully.")
+
+            # Dispose of the camera object if it hasn't been disposed of yet
+            self._camera.dispose()
+            print("Camera disposed successfully.")
+
+            # Dispose of the SDK
+            self._sdk.dispose()
+            print("SDK disposed successfully.")
+
+        except Exception as e:
+            print(f"An error occurred while stopping the live view: {e}")
+
+        self._root.quit()
         print("Camera resources closed.")
 
     def take_picture(self, image_path):
@@ -146,7 +160,6 @@ class CameraController:
         self._image_acquisition_thread.save_next_frame(image_path)
 
     def _on_take_picture(self):
-        """Callback for the "Take Picture" button."""
+        """Callback for the 'Take Picture' button."""
         image_path = f"image_{int(time.time())}.png"
         self.take_picture(image_path)
-

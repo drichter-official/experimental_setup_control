@@ -2,7 +2,6 @@
 
 import serial
 import time
-from tqdm import tqdm
 # Import the utility functions from utils_motor.utils
 from utils_motor.utils import find_arduino, check_arduino_cli, upload_sketch
 
@@ -72,10 +71,7 @@ class MotorController:
         if steps is None:
             steps = self.steps_per_revolution_base * self.micro_stepping * self.revolutions
         self._send_command('F', value=steps)
-        print(f"Motor rotating forwards by {steps} steps, equal to {self.revolutions/40:.2f} rotations of the camera, \n equal to {self.revolutions} revolutions, with micro stepping of size 1/{self.micro_stepping} ")
-        print(f"Expected time:")
-        for i in tqdm(range(self.revolutions)):
-            time.sleep(self.steps_per_revolution_base/self.motor_max_speed)
+        #print(f"Motor rotating forwards by {steps} steps, equal to {self.revolutions/40:.2f} rotations of the camera, \n equal to {self.revolutions} revolutions, with micro stepping of size 1/{self.micro_stepping} ")
 
     def rotate_backwards(self, steps=None):
         """
