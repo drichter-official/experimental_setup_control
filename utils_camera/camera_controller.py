@@ -11,6 +11,7 @@ import numpy as np
 from thorlabs_tsi_sdk.tl_camera import TLCameraSDK, TLCamera, Frame
 from thorlabs_tsi_sdk.tl_camera_enums import SENSOR_TYPE
 
+
 class LiveViewCanvas(tk.Canvas):
     """Tkinter Canvas for displaying live images."""
 
@@ -37,6 +38,7 @@ class LiveViewCanvas(tk.Canvas):
             pass
         # Schedule the next update
         self.after(10, self._update_image)
+
 
 class ImageAcquisitionThread(threading.Thread):
     """Thread for acquiring images from the camera."""
@@ -111,16 +113,47 @@ class CameraController:
         # Initialize GUI components
         self._root = tk.Tk()
         self._root.title(self._camera.name)
+
+        # Create a frame for the live view canvas and controls
+        self._main_frame = tk.Frame(self._root)
+        self._main_frame.pack()
+
+        # Create a canvas for displaying the live view
         self._live_view_canvas = LiveViewCanvas(
-            parent=self._root,
+            parent=self._main_frame,
             image_queue=self._image_acquisition_thread.get_output_queue()
         )
 
-        # Add a "Take Picture" button
+        # Create a frame for the controls (Take Picture button and slider)
+        self._controls_frame = tk.Frame(self._main_frame)
+        self._controls_frame.pack(side=tk.TOP, fill=tk.X, pady=10)
+
+        # Add a "Take Picture" button on the left side
         self._take_picture_button = tk.Button(
-            self._root, text="Take Picture", command=self._on_take_picture
+            self._controls_frame, text="Take Picture", command=self._on_take_picture
         )
-        self._take_picture_button.pack()
+        self._take_picture_button.pack(side=tk.LEFT, padx=10)
+
+        # Print exposure time range
+        print(
+            f"Exposure time range: {self._camera.exposure_time_range_us.min} us to {50000} us") # self._camera.exposure_time_range_us.max
+
+        # Add an exposure time slider on the right side with a wide width
+        exposure_min = max(self._camera.exposure_time_range_us.min, 1)  # Ensure min is at least 1 us
+        exposure_max = 50000
+
+        self._exposure_scale = tk.Scale(
+            self._controls_frame,
+            from_=exposure_min,
+            to=exposure_max,
+            resolution=40,
+            orient=tk.HORIZONTAL,
+            label="Exposure Time (us)",
+            length=1000  # Increase the physical width of the slider
+        )
+        self._exposure_scale.set(self._camera.exposure_time_us)
+        self._exposure_scale.pack(side=tk.RIGHT, padx=0)
+        self._exposure_scale.bind("<ButtonRelease-1>", self._on_exposure_change)
 
         # Handle window close event
         self._root.protocol("WM_DELETE_WINDOW", self.stop_live_view)
@@ -163,3 +196,21 @@ class CameraController:
         """Callback for the 'Take Picture' button."""
         image_path = f"image_{int(time.time())}.png"
         self.take_picture(image_path)
+
+    def _on_exposure_change(self, event):
+        """Callback when the exposure time scale is changed."""
+        exposure_time_us = int(self._exposure_scale.get())
+        try:
+            self._camera.exposure_time_us = exposure_time_us
+            print(f"Exposure time set to {exposure_time_us} us")
+        except Exception as e:
+            print(f"Failed to set exposure time: {e}")
+            try:
+                self._camera.disarm()
+                self._camera.exposure_time_us = exposure_time_us
+                self._camera.arm(2)
+                self._camera.issue_software_trigger()
+                print(f"Exposure time set to {exposure_time_us} us after re-arming")
+            except Exception as e:
+                print(f"Failed to set exposure time after re-arming: {e}")
+
