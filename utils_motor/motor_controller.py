@@ -6,7 +6,7 @@ import time
 from utils_motor.utils import find_arduino, check_arduino_cli, upload_sketch
 
 class MotorController:
-    def __init__(self,config, sketch_path):
+    def __init__(self,config, sketch_path = "utils_motor/scripts_arduino/serial_connector_arduino/serial_connector_arduino.ino"):
         """
         Initialize the MotorController with given parameters.
         """

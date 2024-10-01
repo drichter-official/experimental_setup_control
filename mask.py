@@ -1,6 +1,6 @@
 import os
 from PIL import Image
-
+import numpy as np
 def mask_to_transparent(folder_path):
     """
     Apply a mask to make the left half of all images in the folder transparent.
@@ -18,26 +18,31 @@ def mask_to_transparent(folder_path):
         if filename.endswith(('.png', '.jpg', '.jpeg')):  # Process common image formats
             image_path = os.path.join(folder_path, filename)
             try:
-                # Open the image
-                image = Image.open(image_path).convert("RGBA")  # Ensure the image has an alpha channel
+                # Open the image and ensure it has an alpha channel (RGBA mode)
+                image = Image.open(image_path).convert("RGBA")
                 width, height = image.size
 
-                # Create a transparent mask for the left half
-                pixels = image.load()  # Access the pixel data
+                # Convert the image to a NumPy array for fast manipulation
+                img_array = np.array(image)
 
-                for x in range(width // 2):
-                    for y in range(height):
-                        # Set the alpha value to 0 for full transparency
-                        r, g, b, a = pixels[x, y]
-                        pixels[x, y] = (r, g, b, 0)
+                # Set the alpha channel of the left half (x < width // 2) to 0 (transparent)
+                img_array[:height, :width // 3, 3] = 0
+                img_array[:height, 2 * (width // 3):, 3] = 0
+
+                brightness = np.mean(img_array[:, :, :3], axis=2)
+
+                # Set the alpha channel to 0 (transparent) for pixels with brightness below the threshold
+                img_array[brightness < 50, 3] = 0
+                # Convert back to an image
+                new_image = Image.fromarray(img_array)
 
                 # Save the modified image
-                new_filename = f"masked_{filename}"
+                new_filename = f"{filename}"
                 new_image_path = os.path.join(folder_path, new_filename)
-                image.save(new_image_path)
+                new_image.save(new_image_path)
                 print(f"Processed and saved {new_filename}")
             except Exception as e:
                 print(f"Failed to process {filename}: {e}")
 
-# Example usage:
-# mask_left_half_to_transparent('/path/to/your/images')
+if __name__ == "__main__":
+    mask_to_transparent('/home/daniel/projects/experimental_setup_controller/data/40_imgs/images')
