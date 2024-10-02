@@ -73,6 +73,7 @@ pip install -r requirements.txt
 3. Install Arduino CLI
 
 Follow the instructions on the Arduino CLI GitHub page to install the Arduino CLI and add it to your system PATH.
+
 4. Install Thorlabs TSI SDK
 
 Download and install the Thorlabs TSI SDK from the Thorlabs website.
