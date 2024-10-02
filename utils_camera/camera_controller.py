@@ -79,7 +79,7 @@ class ImageAcquisitionThread(threading.Thread):
                     self._image_queue.put_nowait(pil_image)
                     if self._save_event.is_set():
                         pil_image.save(self._save_path)
-                        print(f"Image saved to {self._save_path}")
+                        #print(f"Image saved to {self._save_path}")
                         self._save_event.clear()
                 else:
                     # No frame available; sleep briefly
@@ -136,11 +136,11 @@ class CameraController:
 
         # Print exposure time range
         print(
-            f"Exposure time range: {self._camera.exposure_time_range_us.min} us to {50000} us") # self._camera.exposure_time_range_us.max
+            f"Exposure time range: {self._camera.exposure_time_range_us.min} us to {200000} us") # self._camera.exposure_time_range_us.max
 
         # Add an exposure time slider on the right side with a wide width
         exposure_min = max(self._camera.exposure_time_range_us.min, 1)  # Ensure min is at least 1 us
-        exposure_max = 50000
+        exposure_max = 200000
 
         self._exposure_scale = tk.Scale(
             self._controls_frame,
