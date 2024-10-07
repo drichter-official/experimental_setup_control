@@ -32,7 +32,7 @@ def mask_to_transparent(folder_path):
                 brightness = np.mean(img_array[:, :, :3], axis=2)
 
                 # Set the alpha channel to 0 (transparent) for pixels with brightness below the threshold
-                img_array[brightness < 1, 3] = 0
+                img_array[brightness < 3, 3] = 0
                 # Convert back to an image
                 new_image = Image.fromarray(img_array)
 
