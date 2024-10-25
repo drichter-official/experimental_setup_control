@@ -105,6 +105,7 @@ set_motor_speed: Desired motor speed in steps per second.
 1. Prepare the Arduino Sketch
 
 Ensure that your Arduino sketch is set up to receive commands from the Python script. The sketch should use macros for configuration parameters, which will be set during the upload process.
+
 2. Run the Motor Controller Script
 
 ```
