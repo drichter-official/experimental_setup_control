@@ -173,20 +173,4 @@ motor_camera_controller/
     utils_camera/: Contains camera control classes and utility functions.
     requirements.txt: List of Python dependencies.
     README.md: Project documentation.
-
-
-[//]: #  License
-
-
-[//]: # This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgements
-
- 
-Arduino CLI: For allowing command-line compilation and uploading of Arduino sketches.
-
-Thorlabs TSI SDK: For camera control functionality.
- 
-Contributors: Thanks to ChatGPT who contributed with code snippets and bug fixes to this project.
-
-Note: Ensure all hardware connections are correct before running the scripts to prevent damage to the equipment. Always test with caution.
+rect before running the scripts to prevent damage to the equipment. Always test with caution.
