@@ -173,4 +173,5 @@ motor_camera_controller/
     utils_camera/: Contains camera control classes and utility functions.
     requirements.txt: List of Python dependencies.
     README.md: Project documentation.
-rect before running the scripts to prevent damage to the equipment. Always test with caution.
+
+Note: Ensure all hardware connections are correct before running the scripts to prevent damage to the equipment. Always test with caution.
