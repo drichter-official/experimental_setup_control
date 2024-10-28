@@ -55,7 +55,7 @@ Required Python Packages:
 1. Clone the Repository
 
 ```
-git clone https://github.com/your_username/motor_camera_controller.git
+git clone https://github.com/drichter-official/motor_camera_controller.git
 cd motor_camera_controller
 ```
 2. Install Python Dependencies
