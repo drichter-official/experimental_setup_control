@@ -39,8 +39,7 @@ Connecting Cables and Power Supply
 ```
 Circuit Diagram
 
-[View PDF](Experimental_setup_sketch.pdf)
-
+![](Sketch.png)
 
 ### Software Requirements
 ```
