@@ -37,6 +37,11 @@ Stepper Motor Driver (e.g., A4988, DRV8825)
 Thorlabs Camera (compatible with Thorlabs TSI SDK)
 Connecting Cables and Power Supply
 ```
+Circuit Diagram
+
+[View PDF](Experimental_setup_sketch.pdf)
+
+
 ### Software Requirements
 ```
 Python 3.x
@@ -52,33 +57,80 @@ Required Python Packages:
     thorlabs_tsi_sdk
 ```
 ## Installation
-1. Clone the Repository
 
+### 1. Clone the Repository
+
+Start by cloning the repository and navigating into the project directory:
 ```
 git clone https://github.com/drichter-official/experimental_setup_control.git
 cd experimental_setup_control
 ```
-2. Install Python Dependencies
+### 2. Set Up Python Environment and Install Dependencies
 
-Create a virtual environment (optional but recommended):
+It's recommended to use a virtual environment to manage dependencies.
+
+1. **Create a virtual environment** (optional but recommended):
 ```
 python -m venv venv
 source venv/bin/activate 
 ```
-Install the required packages:
-
+2. **Install required packages**:
 ```
 pip install -r requirements.txt
 ```
-3. Install Arduino CLI
+3. **Install the Thorlabs camera library**:
+```
+pip install thorlabs_tsi_camera_python_sdk_package.zip
+```
+### 3. Install Arduino CLI
 
-Follow the instructions on the Arduino CLI GitHub page to install the Arduino CLI and add it to your system PATH.
+You’ll need the Arduino CLI to program the Arduino. Follow these steps:
 
-4. Install Thorlabs TSI SDK
+1. **Download and extract Arduino CLI**:
+```
+wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz
+tar -xvf arduino-cli_latest_Linux_64bit.tar.gz
+```
+2. **Move `arduino-cli` to a directory in your PATH**:
+```
+sudo mv arduino-cli /usr/local/bin/
+```
+3. **Configure Arduino CLI and install required libraries**:
+```
+arduino-cli config init
+arduino-cli core update-index
+arduino-cli core install arduino:avr
+arduino-cli lib install AccelStepper
+```
+### 4. Install Thorlabs TSI SDK
 
-Download and install the Thorlabs TSI SDK from the Thorlabs website.
-Configuration
-Motor Configuration
+To interact with Thorlabs cameras, install the Thorlabs TSI SDK.
+
+1. **Download and extract the Thorlabs TSI SDK**:
+```
+wget https://www.thorlabs.com/software/THO/ThorCam/Programming/Scientific_Camera_Interfaces_Linux-2.0.zip
+unzip Scientific_Camera_Interfaces_Linux-2.0.zip
+cd Scientific_Camera_Interfaces
+```
+2. **Copy necessary files to the appropriate directories**:
+```
+sudo cp SDK/Native_Toolkit/bin/Native_64_lib/*.so /usr/local/lib
+sudo ldconfig -v
+sudo cp usb.rules /etc/udev/rules.d
+```
+3. **Set USB permissions** (if required):
+
+If you encounter permission issues with USB access, add your user to the `dialout` group:
+```
+sudo usermod -a -G dialout $USER
+```
+After running this command, log out and back in, then verify you’re in the `dialout` group:
+```
+groups $USER
+```
+
+## Configuration
+### Motor Configuration
 
 Edit the configs/config.ini file to set your motor parameters:
 ```
