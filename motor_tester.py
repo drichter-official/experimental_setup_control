@@ -1,6 +1,6 @@
-# motor_console_controller.py
+# motor_tester.py
 
-from utils_motor.motor_controller import MotorController
+from utils_arduino.arduino_controller import ArduinoController
 import time
 
 def main():
@@ -15,7 +15,7 @@ def main():
     }
 
     # Initialize the motor controller
-    motor = MotorController(config)
+    motor = ArduinoController(config)
 
     try:
         # Connect to the Arduino

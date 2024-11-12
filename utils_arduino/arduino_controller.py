@@ -1,12 +1,12 @@
-# utils_motor/motor_controller.py
+# utils_arduino/arduino_controller.py
 
 import serial
 import time
 # Import the utility functions from utils_motor.utils
-from utils_motor.utils import find_arduino, check_arduino_cli, upload_sketch
+from utils_arduino.utils import find_arduino, check_arduino_cli, upload_sketch
 
-class MotorController:
-    def __init__(self,config, sketch_path = "utils_motor/scripts_arduino/serial_connector_arduino/serial_connector_arduino.ino"):
+class ArduinoController:
+    def __init__(self,config, sketch_path = "utils_arduino/scripts_arduino/serial_connector_arduino/serial_connector_arduino.ino"):
         """
         Initialize the MotorController with given parameters.
         """
@@ -67,6 +67,7 @@ class MotorController:
     def rotate_forwards(self, steps=None):
         """
         Rotate the motor by a specified number of steps.
+        #TODO: Restructure this class/remove this function
         """
         if steps is None:
             steps = self.steps_per_revolution_base * self.micro_stepping * self.revolutions
@@ -76,6 +77,7 @@ class MotorController:
     def rotate_backwards(self, steps=None):
         """
         Rotate the motor by a specified number of steps.
+        #TODO: Restructure this class/remove this function
         """
         if steps is None:
             steps = self.steps_per_revolution_base * self.micro_stepping * self.revolutions

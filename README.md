@@ -99,7 +99,8 @@ sudo mv arduino-cli /usr/local/bin/
 arduino-cli config init
 arduino-cli core update-index
 arduino-cli core install arduino:avr
-arduino-cli lib install AccelStepper
+arduino-cli lib install "AccelStepper"
+arduino-cli lib install "Adafruit NeoPixel"
 ```
 ### 4. Install Thorlabs TSI SDK
 

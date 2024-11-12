@@ -5,7 +5,7 @@ import time
 import threading
 
 from utils_camera.camera_controller import CameraController
-from utils_motor.motor_controller import MotorController
+from utils_arduino.arduino_controller import ArduinoController
 
 from tqdm import tqdm
 
@@ -83,7 +83,7 @@ def main():
     config = vars(args)
 
     # Create an instance of MotorController with the updated arguments
-    motor_controller = MotorController(
+    motor_controller = ArduinoController(
         config=config,
         sketch_path=args.sketch_path,
     )

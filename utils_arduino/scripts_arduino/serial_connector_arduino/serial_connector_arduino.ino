@@ -1,5 +1,6 @@
 // Include the AccelStepper library:
-#include "AccelStepper.h"
+#include <AccelStepper.h>
+#include <Adafruit_NeoPixel.h>
 
 // Define stepper motor connections and motor interface type.
 // Motor interface type must be set to 1 when using a driver
@@ -11,6 +12,11 @@
 #define msc1 8
 #define msc2 9
 #define msc3 10
+
+// LED Strip Configuration
+#define LED_PIN 6
+#define LED_COUNT 60
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 // Configuration Parameters
 #ifndef STEPS_PER_REVOLUTION_BASE
@@ -72,14 +78,17 @@ void setup() {
   setMicrostepping(microstepping);
 
   // Set the maximum speed and acceleration in steps per second:
-  //stepper.setAcceleration(400);
   if (acceleration != 0) {
     stepper.setAcceleration(acceleration * microstepping);
   }
-  //stepper.setMaxSpeed(1600);
   if (maxSpeed != 0) {
     stepper.setMaxSpeed(maxSpeed * microstepping);
   }
+
+  // Initialize LED strip
+  strip.begin();
+  strip.clear();
+  strip.show();
 }
 
 void loop() {
@@ -96,6 +105,49 @@ void loop() {
     } else if (command == 'B') {
       stepper.moveTo(stepper.currentPosition() - value);
       stepper.runToPosition();
+    }
+
+    // LED Strip Control Commands
+    else if (command == 'L') { // Turn on entire LED strip with specified brightness (0-255)
+      uint8_t brightness = constrain(value, 0, 255);
+      strip.setBrightness(brightness);
+      for (int i = 0; i <= LED_COUNT; i++) {
+        strip.setPixelColor(i, strip.Color(255, 255, 255)); // Default to white color
+      }
+      strip.show();
+    } else if (command == 'O') { // Turn off entire LED strip
+      for (int i = 0; i <= LED_COUNT; i++) {
+        strip.setPixelColor(i, strip.Color(0, 0, 0));
+      }
+      strip.show();
+    } else if (command == 'C') { // Set color of entire LED strip (RRGGBB format)
+      long colorValue = strtol(valueString.c_str(), NULL, 16);
+      uint8_t r = (colorValue >> 16) & 0xFF;
+      uint8_t g = (colorValue >> 8) & 0xFF;
+      uint8_t b = colorValue & 0xFF;
+      for (int i = 0; i <= LED_COUNT; i++) {
+        strip.setPixelColor(i, strip.Color(r, g, b));
+      }
+      strip.show();
+    } else if (command == 'S') { // Set specific LED (format: LED_INDEX,RRGGBB)
+      int commaIndex = valueString.indexOf(',');
+      if (commaIndex > 0) {
+        int ledIndex = valueString.substring(0, commaIndex).toInt();
+        long colorValue = strtol(valueString.substring(commaIndex + 1).c_str(), NULL, 16);
+        uint8_t r = (colorValue >> 16) & 0xFF;
+        uint8_t g = (colorValue >> 8) & 0xFF;
+        uint8_t b = colorValue & 0xFF;
+        if (ledIndex >= 0 && ledIndex < LED_COUNT) {
+          strip.setPixelColor(ledIndex, strip.Color(r, g, b));
+          strip.show();
+        }
+      }
+    } else if (command == 'P') { // Turn off specific LED (format: LED_INDEX)
+      int ledIndex = valueString.toInt();
+      if (ledIndex >= 0 && ledIndex < LED_COUNT) {
+        strip.setPixelColor(ledIndex, strip.Color(0, 0, 0));
+        strip.show();
+      }
     }
   }
 }
