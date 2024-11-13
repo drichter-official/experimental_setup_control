@@ -96,6 +96,7 @@ class CameraController:
     """Controller class for camera operations."""
 
     def __init__(self):
+        # Initialize SDK and camera
         self._sdk = TLCameraSDK()
         camera_list = self._sdk.discover_available_cameras()
         if not camera_list:
@@ -114,45 +115,53 @@ class CameraController:
         self._root = tk.Tk()
         self._root.title(self._camera.name)
 
-        # Create a frame for the live view canvas and controls
+        # Main frame to hold the button, canvas, and slider
         self._main_frame = tk.Frame(self._root)
-        self._main_frame.pack()
+        self._main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Create a canvas for displaying the live view
+        # Left frame for the "Take Picture" button
+        self._button_frame = tk.Frame(self._main_frame)
+        self._button_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+
+        # Add "Take Picture" button
+        self._take_picture_button = tk.Button(
+            self._button_frame, text="Take Picture", command=self._on_take_picture
+        )
+        self._take_picture_button.pack(side=tk.TOP)
+
+        # Center frame for displaying the live view
+        self._canvas_frame = tk.Frame(self._main_frame)
+        self._canvas_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
         self._live_view_canvas = LiveViewCanvas(
-            parent=self._main_frame,
+            parent=self._canvas_frame,
             image_queue=self._image_acquisition_thread.get_output_queue()
         )
 
-        # Create a frame for the controls (Take Picture button and slider)
-        self._controls_frame = tk.Frame(self._main_frame)
-        self._controls_frame.pack(side=tk.TOP, fill=tk.X, pady=10)
-
-        # Add a "Take Picture" button on the left side
-        self._take_picture_button = tk.Button(
-            self._controls_frame, text="Take Picture", command=self._on_take_picture
-        )
-        self._take_picture_button.pack(side=tk.LEFT, padx=10)
+        # Right frame for the exposure slider
+        self._slider_frame = tk.Frame(self._main_frame)
+        self._slider_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=10)
 
         # Print exposure time range
         print(
-            f"Exposure time range: {self._camera.exposure_time_range_us.min} us to {200000} us") # self._camera.exposure_time_range_us.max
+            f"Exposure time range: {self._camera.exposure_time_range_us.min} us to {200000} us"
+        )  # self._camera.exposure_time_range_us.max
 
-        # Add an exposure time slider on the right side with a wide width
+        # Configure and add exposure slider
         exposure_min = max(self._camera.exposure_time_range_us.min, 1)  # Ensure min is at least 1 us
         exposure_max = 200000
 
         self._exposure_scale = tk.Scale(
-            self._controls_frame,
+            self._slider_frame,
             from_=exposure_min,
             to=exposure_max,
             resolution=40,
-            orient=tk.HORIZONTAL,
+            orient=tk.VERTICAL,  # Set to vertical for the right-side layout
             label="Exposure Time (us)",
-            length=1000  # Increase the physical width of the slider
+            length=300  # Adjust this length as needed
         )
         self._exposure_scale.set(self._camera.exposure_time_us)
-        self._exposure_scale.pack(side=tk.RIGHT, padx=0)
+        self._exposure_scale.pack(side=tk.TOP)
         self._exposure_scale.bind("<ButtonRelease-1>", self._on_exposure_change)
 
         # Handle window close event
