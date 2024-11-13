@@ -158,7 +158,7 @@ class CameraController:
             resolution=40,
             orient=tk.VERTICAL,  # Set to vertical for the right-side layout
             label="Exposure Time (us)",
-            length=300  # Adjust this length as needed
+            length=1000  # Adjust this length as needed
         )
         self._exposure_scale.set(self._camera.exposure_time_us)
         self._exposure_scale.pack(side=tk.TOP)
