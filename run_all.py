@@ -6,9 +6,11 @@ import time
 import serial
 
 def main():
-
-    camera_controller = CameraController()
-    camera_controller.start_live_view()
+    try:
+        camera_controller = CameraController()
+        camera_controller.start_live_view()
+    except:
+        pass
 
     # Configuration for the motor
     config = {
@@ -31,36 +33,8 @@ def main():
         ser = serial.Serial(arduino.port, 9600, timeout=1)
         time.sleep(2)  # Allow some time for the Arduino to reset
 
+
         while True:
-            while True:
-                # Get user input from the console
-                user_input = input(
-                    "Enter the number of steps (positive for forward, negative for backward, 'q' to quit): ")
-
-                # Check if the user wants to quit
-                if user_input.lower() == 'q':
-                    print("Exiting...")
-                    break
-
-                # Try to convert the input to an integer
-                try:
-                    steps = int(user_input)
-                except ValueError:
-                    print("Invalid input. Please enter an integer value.")
-                    continue
-
-                # Move the motor based on the user input
-                if steps > 0:
-                    print(f"Moving forward by {steps} steps...")
-                    motor.rotate_forwards(steps)
-                elif steps < 0:
-                    print(f"Moving backward by {-steps} steps...")
-                    motor.rotate_backwards(-steps)
-                else:
-                    print("Zero steps entered, motor will not move.")
-
-                # Small delay to allow serial communication to complete
-                time.sleep(0.5)
             # Get user input from the console
             user_input = input("Enter command for LED strip ('on'/'off'/'set_color RRGGBB'/'brightness 0-255'/'quit'): ")
 
@@ -97,9 +71,8 @@ def main():
                 try :
                     ts = int(user_input.split()[1])
                     print(f"Activating rainbow mode for {ts} seconds...")
-                    ser.write(b'R\n')  # Send rainbow mode command
+                    ser.write(f'R{ts}\n'.encode())  # Send rainbow mode command
                     time.sleep(ts)  # Keep the rainbow mode active for 10 seconds
-                    ser.write(b'O\n')  # Turn off after 10 seconds
                     print("Rainbow mode ended.")
                 except ValueError:
                     print("Invalid time value. Please enter a number.")
@@ -118,8 +91,8 @@ def main():
             else:
                 print("Invalid command. Please try again.")
 
-            # Small delay to allow serial communication to complete
-            time.sleep(0.5)
+        # Small delay to allow serial communication to complete
+        time.sleep(0.5)
 
     except Exception as e:
         print(f"Error: {e}")
