@@ -1,16 +1,22 @@
+# utils_arduino/utils.py
+
 import subprocess
 import json
 import sys
 import shutil
 def check_arduino_cli():
-    """Check if arduino-cli is installed."""
+    """
+    Check if arduino-cli is installed.
+    """
     if not shutil.which('arduino-cli'):
         print("arduino-cli is not installed or not in your PATH.")
         print("Please install it from https://github.com/arduino/arduino-cli#installation")
         sys.exit(1)
 
 def find_arduino():
-    """Find the connected Arduino board and return its port and FQBN."""
+    """
+    Find the connected Arduino board and return its port and FQBN.
+    """
     result = subprocess.run(
         ['arduino-cli', 'board', 'list', '--format', 'json'],
         capture_output=True, text=True

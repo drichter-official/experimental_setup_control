@@ -91,6 +91,29 @@ void setup() {
   strip.show();
 }
 
+void rainbowEffect(int wait) {
+  for (int j = 0; j < 256; j++) { // Full cycle of colors
+    for (int i = 0; i < strip.numPixels(); i++) {
+      strip.setPixelColor(i, wheel((i + j) & 255));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+uint32_t wheel(byte wheelPos) {
+  wheelPos = 255 - wheelPos;
+  if (wheelPos < 85) {
+    return strip.Color(255 - wheelPos * 3, 0, wheelPos * 3);
+  }
+  if (wheelPos < 170) {
+    wheelPos -= 85;
+    return strip.Color(0, wheelPos * 3, 255 - wheelPos * 3);
+  }
+  wheelPos -= 170;
+  return strip.Color(wheelPos * 3, 255 - wheelPos * 3, 0);
+}
+
 void loop() {
   if (Serial.available() > 0) {
     String inputString = Serial.readStringUntil('\n');
@@ -111,12 +134,12 @@ void loop() {
     else if (command == 'L') { // Turn on entire LED strip with specified brightness (0-255)
       uint8_t brightness = constrain(value, 0, 255);
       strip.setBrightness(brightness);
-      for (int i = 0; i <= LED_COUNT; i++) {
+      for (int i = 0; i < LED_COUNT; i++) {
         strip.setPixelColor(i, strip.Color(255, 255, 255)); // Default to white color
       }
       strip.show();
     } else if (command == 'O') { // Turn off entire LED strip
-      for (int i = 0; i <= LED_COUNT; i++) {
+      for (int i = 0; i < LED_COUNT; i++) {
         strip.setPixelColor(i, strip.Color(0, 0, 0));
       }
       strip.show();
@@ -125,29 +148,20 @@ void loop() {
       uint8_t r = (colorValue >> 16) & 0xFF;
       uint8_t g = (colorValue >> 8) & 0xFF;
       uint8_t b = colorValue & 0xFF;
-      for (int i = 0; i <= LED_COUNT; i++) {
+      for (int i = 0; i < LED_COUNT; i++) {
         strip.setPixelColor(i, strip.Color(r, g, b));
       }
       strip.show();
-    } else if (command == 'S') { // Set specific LED (format: LED_INDEX,RRGGBB)
-      int commaIndex = valueString.indexOf(',');
-      if (commaIndex > 0) {
-        int ledIndex = valueString.substring(0, commaIndex).toInt();
-        long colorValue = strtol(valueString.substring(commaIndex + 1).c_str(), NULL, 16);
-        uint8_t r = (colorValue >> 16) & 0xFF;
-        uint8_t g = (colorValue >> 8) & 0xFF;
-        uint8_t b = colorValue & 0xFF;
-        if (ledIndex >= 0 && ledIndex < LED_COUNT) {
-          strip.setPixelColor(ledIndex, strip.Color(r, g, b));
-          strip.show();
-        }
+    } else if (command == 'R') { // Activate rainbow effect
+      int duration = value > 0 ? value : 10; // Default duration is 10 seconds
+      unsigned long startTime = millis();
+      while (millis() - startTime < duration * 1000) {
+        rainbowEffect(20); // Adjust speed with delay (in ms)
       }
-    } else if (command == 'P') { // Turn off specific LED (format: LED_INDEX)
-      int ledIndex = valueString.toInt();
-      if (ledIndex >= 0 && ledIndex < LED_COUNT) {
-        strip.setPixelColor(ledIndex, strip.Color(0, 0, 0));
-        strip.show();
+      for (int i = 0; i < LED_COUNT; i++) {
+        strip.setPixelColor(i, strip.Color(0, 0, 0)); // Clear after rainbow
       }
+      strip.show();
     }
   }
 }

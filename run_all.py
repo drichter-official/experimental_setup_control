@@ -1,10 +1,15 @@
-# light_tester.py
+# run_all.py
 
+from utils_camera.camera_controller import CameraController
 from utils_arduino.arduino_controller import ArduinoController
 import time
 import serial
 
 def main():
+
+    camera_controller = CameraController()
+    camera_controller.start_live_view()
+
     # Configuration for the motor
     config = {
         "steps_per_revolution_base": 200,
@@ -27,8 +32,37 @@ def main():
         time.sleep(2)  # Allow some time for the Arduino to reset
 
         while True:
+            while True:
+                # Get user input from the console
+                user_input = input(
+                    "Enter the number of steps (positive for forward, negative for backward, 'q' to quit): ")
+
+                # Check if the user wants to quit
+                if user_input.lower() == 'q':
+                    print("Exiting...")
+                    break
+
+                # Try to convert the input to an integer
+                try:
+                    steps = int(user_input)
+                except ValueError:
+                    print("Invalid input. Please enter an integer value.")
+                    continue
+
+                # Move the motor based on the user input
+                if steps > 0:
+                    print(f"Moving forward by {steps} steps...")
+                    motor.rotate_forwards(steps)
+                elif steps < 0:
+                    print(f"Moving backward by {-steps} steps...")
+                    motor.rotate_backwards(-steps)
+                else:
+                    print("Zero steps entered, motor will not move.")
+
+                # Small delay to allow serial communication to complete
+                time.sleep(0.5)
             # Get user input from the console
-            user_input = input("Enter command for LED strip ('steps num_of_steps''on'/'off'/'set_color RRGGBB'/'brightness 0-255'/'quit'): ")
+            user_input = input("Enter command for LED strip ('on'/'off'/'set_color RRGGBB'/'brightness 0-255'/'quit'): ")
 
             # Check if the user wants to quit
             if user_input.lower() == 'quit':
@@ -62,7 +96,7 @@ def main():
             elif user_input.lower().startswith('fun '):
                 try :
                     ts = int(user_input.split()[1])
-                    print("Activating rainbow mode for 10 seconds...")
+                    print(f"Activating rainbow mode for {ts} seconds...")
                     ser.write(b'R\n')  # Send rainbow mode command
                     time.sleep(ts)  # Keep the rainbow mode active for 10 seconds
                     ser.write(b'O\n')  # Turn off after 10 seconds
@@ -70,6 +104,17 @@ def main():
                 except ValueError:
                     print("Invalid time value. Please enter a number.")
 
+            elif user_input.lower().startswith('steps '):
+                try:
+                    steps = int(user_input.split()[1])
+                    if steps >= 0:
+                        print(f"Moving forward by {steps} steps...")
+                        arduino.rotate_forwards(steps)
+                    elif steps < 0:
+                        print(f"Moving backward by {-steps} steps...")
+                        arduino.rotate_backwards(-steps)
+                except ValueError:
+                    print("Invalid brightness value. Please enter a number between 0 and 255.")
             else:
                 print("Invalid command. Please try again.")
 

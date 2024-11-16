@@ -1,4 +1,4 @@
-# camera_controller.py
+# utils_camera/camera_controller.py
 
 import threading
 import tkinter as tk
