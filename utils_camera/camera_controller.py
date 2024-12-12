@@ -1,16 +1,16 @@
 # utils_camera/camera_controller.py
 
-import threading
+import threading,os
 import tkinter as tk
 from PIL import Image, ImageTk
 import queue
 import typing
 import time
 import numpy as np
+import tifffile
 
 from thorlabs_tsi_sdk.tl_camera import TLCameraSDK, TLCamera, Frame
 from thorlabs_tsi_sdk.tl_camera_enums import SENSOR_TYPE
-
 
 class LiveViewCanvas(tk.Canvas):
     """Tkinter Canvas for displaying live images."""
@@ -223,3 +223,96 @@ class CameraController:
             except Exception as e:
                 print(f"Failed to set exposure time after re-arming: {e}")
 
+# Custom TIFF tags
+TAG_BITDEPTH = 32768
+TAG_EXPOSURE = 32769
+
+class CameraControllerSimple:
+    """
+    A simple camera controller for a Thorlabs TSI camera that:
+    - Initializes with a specified exposure time and bit depth.
+    - Captures a single image on command and saves it as a TIFF file.
+    - No live view functionality.
+    """
+
+    def __init__(self, exposure_time_us: int = 10000, bit_depth: int = 16):
+        """
+        Initialize the camera controller with given exposure time (in microseconds) and bit depth.
+        """
+        self._sdk = TLCameraSDK()
+        camera_list = self._sdk.discover_available_cameras()
+        if not camera_list:
+            self._sdk.dispose()
+            raise Exception("No cameras found.")
+
+        self._camera = self._sdk.open_camera(camera_list[0])
+
+        # Configure the camera
+        # Ensure that requested bit depth is supported by the camera
+        supported_bit_depths = self._camera.bit_depths
+        if bit_depth not in supported_bit_depths:
+            raise ValueError(f"Requested bit depth ({bit_depth}) not supported. Supported: {supported_bit_depths}")
+
+        self._camera.bit_depth = bit_depth
+        self._camera.exposure_time_us = exposure_time_us
+        self._camera.frames_per_trigger_zero_for_unlimited = 0
+        self._camera.image_poll_timeout_ms = 2000  # set a reasonable timeout (2s)
+        self._camera.arm(2)  # Prepare camera for acquisition
+
+        # Store parameters for later use (e.g. in TIFF tags)
+        self._bit_depth = bit_depth
+        self._exposure = exposure_time_us
+        self._image_width = self._camera.image_width_pixels
+        self._image_height = self._camera.image_height_pixels
+        self._is_color_camera = (self._camera.camera_sensor_type == SENSOR_TYPE.BAYER)
+
+    def take_image(self, filename: str = "image.tif"):
+        """
+        Capture a single image from the camera and save it as a TIFF file.
+        """
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        # Issue a single software trigger to capture one frame
+        self._camera.issue_software_trigger()
+
+        # Retrieve the frame
+        frame = self._camera.get_pending_frame_or_null()
+        if frame is None:
+            raise TimeoutError("No frame received from the camera within the timeout period.")
+
+        # Convert the image data depending on bit depth:
+        # The frame.image_buffer is a numpy array of np.uint16 if bit_depth>8, np.uint8 otherwise.
+        # For higher bit depths, you may want to handle scaling or direct saving.
+        image_data = frame.image_buffer.reshape(self._image_height, self._image_width)
+
+        # Save the image as a TIFF with custom tags
+        with tifffile.TiffWriter(filename, append=False) as tiff:
+            tiff.write(
+                data=image_data,
+                extratags=[
+                    (TAG_BITDEPTH, 'I', 1, self._bit_depth, False),
+                    (TAG_EXPOSURE, 'I', 1, self._exposure, False)
+                ]
+            )
+
+    def close(self):
+        """
+        Clean up camera and SDK resources.
+        """
+        # Disarm camera if still armed
+        try:
+            self._camera.disarm()
+        except:
+            pass
+
+        # Dispose camera and SDK
+        self._camera.dispose()
+        self._sdk.dispose()
+
+    def __del__(self):
+        # Ensure resources are closed if not already done
+        try:
+            self.close()
+        except:
+            pass
