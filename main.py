@@ -4,7 +4,7 @@ import configparser
 import time
 import threading
 
-from utils_camera.camera_controller import CameraController
+from utils_camera.camera_controller import CameraController,CameraControllerSimple
 from utils_arduino.arduino_controller import ArduinoController
 
 from tqdm import tqdm
@@ -18,7 +18,7 @@ def aquire_images(config, camera_controller, motor_controller):
     os.makedirs(config['images_path'], exist_ok=True)
     for i in tqdm(range(config["n_images"])):
         # Capture an image and save it
-        image_path = f"{config['images_path']}/{i}.png"
+        image_path = f"{config['images_path']}/{i}"
         camera_controller.take_picture(image_path)
 
         # Rotate the motor
@@ -38,8 +38,7 @@ def aquire_images(config, camera_controller, motor_controller):
         config["micro_stepping"] * config["steps_per_revolution_base"] * 40
     )
 
-    # Stop the live view after the loop is done
-    camera_controller.stop_live_view()
+    # Stop the motor_controller after loop is done
     motor_controller.close()
 
 
@@ -60,6 +59,10 @@ def main():
 
     parser.add_argument('--n_images', type=int, default=40, help='Number of images to aquire.')
     parser.add_argument('--images_path', type=str, default='/data/40_imgs', help='Storage path for the images.')
+
+    parser.add_argument('--exposure_time_us', type=int, default=10000, help='Exposure time in Microseconds.')
+    parser.add_argument('--bit_depth', type=int, default=16, help='Target bit depth.')
+
 
     args = parser.parse_args()
 
@@ -90,17 +93,20 @@ def main():
     motor_controller.connect()
 
     # Create an instance of CameraController
-    camera_controller = CameraController()
+    camera_controller = CameraControllerSimple(exposure_time_us = args.exposure_time_us, bit_depth=args.bit_depth)
+    #camera_controller = CameraController()
 
     # Run the motor control task in a separate thread
     motor_thread = threading.Thread(target=aquire_images, args=(config, camera_controller, motor_controller))
     motor_thread.start()
 
     # Start the live view (this needs to be on the main thread)
-    camera_controller.start_live_view()
+    #camera_controller.start_live_view()
 
     # Wait for the motor control thread to finish
     motor_thread.join()
+    #camera_controller.stop_live_view()
+
 
 if __name__ == "__main__":
     main()

@@ -266,7 +266,7 @@ class CameraControllerSimple:
         self._image_height = self._camera.image_height_pixels
         self._is_color_camera = (self._camera.camera_sensor_type == SENSOR_TYPE.BAYER)
 
-    def take_image(self, filename: str = "image.tif"):
+    def take_image(self, filename):
         """
         Capture a single image from the camera and save it as a TIFF file.
         """
@@ -287,7 +287,7 @@ class CameraControllerSimple:
         image_data = frame.image_buffer.reshape(self._image_height, self._image_width)
 
         # Save the image as a TIFF with custom tags
-        with tifffile.TiffWriter(filename, append=False) as tiff:
+        with tifffile.TiffWriter(filename+str(".tiff"), append=False) as tiff:
             tiff.write(
                 data=image_data,
                 extratags=[
